@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 
 type Props = {
   category: string;
@@ -6,7 +6,7 @@ type Props = {
 
 function Title({ category }: Props) {
   return (
-    <h1 className="font-extrabold text-2xl">{`${category} of the day`}</h1>
+    <h1 className="font-extrabold text-4xl">{`${category} of the day`}</h1>
   );
 }
 

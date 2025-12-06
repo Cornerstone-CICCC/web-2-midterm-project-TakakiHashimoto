@@ -1,20 +1,19 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 type Props = {
-  switchToHome: () => void;
-  switchToAbout: () => void;
   className?: string;
 };
 
-function Navbar({ switchToHome, switchToAbout, className }: Props) {
+function Navbar({ className }: Props) {
   return (
     <div className={className}>
       <ul>
         <li>
-          <button onClick={switchToHome}>Home</button>
+          <Link to={"/"}>Home</Link>
         </li>
         <li>
-          <button onClick={switchToAbout}>About</button>
+          <Link to={"about"}>About</Link>
         </li>
       </ul>
     </div>

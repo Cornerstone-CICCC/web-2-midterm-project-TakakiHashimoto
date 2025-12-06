@@ -1,5 +1,6 @@
 import {
   GenresResponseSchema,
+  MovieCreditsSchema,
   MovieSchema,
   TrendingMoviesResponseSchema,
 } from "./src/schemas/trendingMovie";
@@ -20,6 +21,14 @@ async function getTrendingMovies() {
   return TrendingMoviesResponseSchema.parse(trendingMovie);
 }
 
+async function getTrendingTvShows() {
+  const url = "https://api.themoviedb.org/3/trending/tv/day";
+  const res = await fetch(url, header);
+  const trendingTvShows = await res.json();
+  console.log(trendingTvShows);
+  return trendingTvShows;
+}
+
 async function getGenre() {
   const res = await fetch(
     "https://api.themoviedb.org/3/genre/movie/list",
@@ -30,4 +39,34 @@ async function getGenre() {
   console.log(genreData);
   return GenresResponseSchema.parse(genreData);
 }
-export { getTrendingMovies, getGenre };
+
+async function getTvGenre() {
+  const res = await fetch("https://api.themoviedb.org/3/genre/tv/list", header);
+  const tvGenre = await res.json();
+  return tvGenre;
+}
+
+async function searchMovie(id: number) {
+  const res = await fetch(`https://api.themoviedb.org/3/movie/${id}`, header);
+  const searchResult = await res.json();
+  console.log(searchResult);
+  return searchResult;
+}
+
+async function getActors(movie_id: number) {
+  const res = await fetch(
+    `https://api.themoviedb.org/3/movie/${movie_id}/credits`,
+    header
+  );
+  const actorData = await res.json();
+  return MovieCreditsSchema.parse(actorData);
+}
+
+export {
+  getTrendingMovies,
+  getGenre,
+  getTrendingTvShows,
+  getTvGenre,
+  searchMovie,
+  getActors,
+};
