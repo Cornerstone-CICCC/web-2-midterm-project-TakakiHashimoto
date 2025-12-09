@@ -61,3 +61,31 @@ export const MovieCreditsSchema = z.object({
 
 export type Cast = z.infer<typeof CastSchema>;
 export type MovieCredits = z.infer<typeof MovieCreditsSchema>;
+
+export const TvShowSchema = z.object({
+  adult: z.boolean(),
+  backdrop_path: z.string().nullable(),
+  first_air_date: z.string(), // TMDB gives YYYY-MM-DD or empty string
+  genre_ids: z.array(z.number()),
+  id: z.number(),
+  media_type: z.literal("tv"),
+  name: z.string(),
+  origin_country: z.array(z.string()),
+  original_language: z.string(),
+  original_name: z.string(),
+  overview: z.string(),
+  popularity: z.number(),
+  poster_path: z.string().nullable(),
+  vote_average: z.number(),
+  vote_count: z.number(),
+});
+
+export const TvShowsResponseSchema = z.object({
+  page: z.number(),
+  results: z.array(TvShowSchema),
+  total_pages: z.number(),
+  total_results: z.number(),
+});
+
+export type TvShow = z.infer<typeof TvShowSchema>;
+export type TvShowsResponse = z.infer<typeof TvShowsResponseSchema>;

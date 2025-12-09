@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { string } from "zod";
+import { ca } from "zod/v4/locales";
+// import { string } from "zod";
 
 type Props = {
   imageSrc: string;
@@ -8,12 +9,17 @@ type Props = {
   year: string;
   vote: number;
   id: number;
+  category: string;
 };
 
-function Card({ imageSrc, title, year, vote, id }: Props) {
+function Card({ imageSrc, title, year, vote, id, category }: Props) {
+  // if category === movie
+  {
+    category === "movie" ? "" : "";
+  }
   return (
     <div className="flex flex-col gap-1 w-[220px]  bg-blue-950/10 rounded-2xl shadow-2xl shrink-0">
-      <Link to={`movie/${id}`}>
+      <Link to={`/movie/${category}/${id}`}>
         <img
           src={imageSrc}
           alt="image of the movie"
@@ -22,7 +28,7 @@ function Card({ imageSrc, title, year, vote, id }: Props) {
       </Link>
       <p>{title}</p>
       <p>Release Year: {year}</p>
-      <p>Rating: {vote}</p>
+      <p>⭐ {vote.toFixed(1)}</p>
     </div>
   );
 }

@@ -15,7 +15,16 @@ type Props = {
   id: number;
   name: string;
 };
-function Section() {
+
+type sectionProps = {
+  category: string;
+  setCategory: (value: string) => void;
+};
+
+function Section({ category, setCategory }: sectionProps) {
+  function updateCategory(value: string) {
+    setCategory(value);
+  }
   const { data, isLoading } = useQuery({
     queryKey: ["trendingMovie"],
     queryFn: () => getTrendingMovies(),
@@ -35,20 +44,14 @@ function Section() {
     queryKey: ["tvshowGenre"],
     queryFn: () => getTvGenre(),
   });
-
-  const [category, setCategory] = useState("movie");
   // genreData.genre = [{id: 28, name: 'Action'}, {id: 28, name: 'Action'}, {id: 28, name: 'Action'}...]
-
-  function changeCategory(value: string) {
-    setCategory(value);
-  }
 
   let passedData = category === "movie" ? data : tvShowsData;
   let passedGenre = category === "movie" ? genreData : tvshowGenreData;
 
   const [sort, setSort] = useState("genre");
 
-  const sortedByRating = [...passedData.results].sort(
+  const sortedByRating = [...passedData?.results].sort(
     (a, b) => b.vote_average - a.vote_average
   );
   passedData = {
@@ -66,7 +69,7 @@ function Section() {
     <div className="flex flex-col gap-5">
       <div className="flex gap-5">
         <Select
-          change={changeCategory}
+          change={updateCategory}
           value={category}
           options={["movie", "TV Shows"]}
           childrenClassName="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none"
@@ -84,8 +87,12 @@ function Section() {
           return movie.genre_ids.includes(genre.id);
         });
         return (
-          selectedData.length !== 0 && (
-            <Genre genreTitle={genre.name} movieList={selectedData ?? []} />
+          selectedData?.length !== 0 && (
+            <Genre
+              genreTitle={genre.name}
+              movieList={selectedData ?? []}
+              category={category}
+            />
           )
         );
       })}

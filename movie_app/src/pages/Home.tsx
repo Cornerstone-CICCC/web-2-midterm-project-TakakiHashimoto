@@ -7,9 +7,6 @@ import Searchbar from "../components/Searchbar";
 // import { BrowserRouter } from "react-router-dom";
 
 function Home() {
-  const [isHome, setIsHome] = useState(true);
-  const [isAbout, setIsAbout] = useState(false);
-
   const { data, isLoading } = useQuery({
     queryKey: ["trendingMovie"],
     queryFn: () => getTrendingMovies(),
@@ -24,6 +21,8 @@ function Home() {
   //     setIsHome(false);
   //     setIsAbout(true);
   //   }
+
+  const [category, setCategory] = useState("movie");
 
   if (isLoading) return <p>Loading...</p>;
 
@@ -43,15 +42,14 @@ function Home() {
           className="custom-rays "
         />
       </div>
-      <div className="flex gap-3 ">
-        <div className="ml-[15%] flex-1 flex flex-col gap-8 max-w-8/10 ">
-          <Searchbar className="border border-white/20 rounded-3xl px-4 py-2 text-white bg-black/30 backdrop-blur-sm placeholder-white/40focus:outline-none focus:border-cyan-400" />
-          {isHome && (
-            // <div className="flex gap-4 justify-between">
-            <Section />
-            /* </div> */
-          )}
-          {isAbout && <p>About page loaded</p>}
+      <div className="flex flex-col gap-3 ">
+        <div className="mx-auto mt-16 flex w-full max-w-screen-2xl flex-col gap-8 px-4 sm:px-6 md:px-10">
+          <Searchbar
+            className="border border-white/20 rounded-3xl px-4 py-2 text-white bg-black/30 backdrop-blur-sm placeholder-white/40focus:outline-none focus:border-cyan-400 w-full md:max-w-md"
+            category={category}
+          />
+
+          <Section category={category} setCategory={setCategory} />
         </div>
       </div>
     </div>

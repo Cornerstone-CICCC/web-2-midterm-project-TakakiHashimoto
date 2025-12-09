@@ -3,6 +3,7 @@ import {
   MovieCreditsSchema,
   MovieSchema,
   TrendingMoviesResponseSchema,
+  TvShowsResponseSchema,
 } from "./src/schemas/trendingMovie";
 
 const API_KEY = import.meta.env.VITE_API_KEY;
@@ -26,7 +27,7 @@ async function getTrendingTvShows() {
   const res = await fetch(url, header);
   const trendingTvShows = await res.json();
   console.log(trendingTvShows);
-  return trendingTvShows;
+  return TvShowsResponseSchema.parse(trendingTvShows);
 }
 
 async function getGenre() {
@@ -53,13 +54,67 @@ async function searchMovie(id: number) {
   return searchResult;
 }
 
-async function getActors(movie_id: number) {
+async function searchShows(id: number) {
+  const res = await fetch(`https://api.themoviedb.org/3/tv/${id}`, header);
+  const searchResult = await res.json();
+  console.log(searchResult);
+  return searchResult;
+}
+
+async function getActors(movie_id: number, category: string) {
   const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${movie_id}/credits`,
+    category === "movie"
+      ? `https://api.themoviedb.org/3/movie/${movie_id}/credits`
+      : `https://api.themoviedb.org/3/tv/${movie_id}/credits`,
     header
   );
   const actorData = await res.json();
   return MovieCreditsSchema.parse(actorData);
+}
+
+async function searchMoviesByName(query: string, category: string) {
+  const res = await fetch(
+    category === "movie"
+      ? `https://api.themoviedb.org/3/search/movie?query=${query}`
+      : `https://api.themoviedb.org/3/search/tv?query=${query}`,
+    header
+  );
+  const searchResult = await res.json();
+  console.log(searchResult);
+  return searchResult;
+}
+
+async function getTopMovies() {
+  const results = [];
+
+  for (let i = 1; i <= 5; i++) {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=true&language=en-US&page=${i}&sort_by=vote_average.desc&vote_count.gte=1000;`,
+      header
+    );
+    const result = await res.json();
+    console.log(result);
+    results.push(...result.results);
+  }
+
+  console.log(results);
+  return results;
+}
+
+async function getTopShows() {
+  const results = [];
+
+  for (let i = 1; i <= 5; i++) {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/discover/tv?include_adult=false&include_video=true&language=en-US&page=${i}&sort_by=vote_average.desc&vote_count.gte=1000;`,
+      header
+    );
+    const result = await res.json();
+
+    results.push(...result.results);
+  }
+  console.log(results);
+  return results;
 }
 
 export {
@@ -69,4 +124,8 @@ export {
   getTvGenre,
   searchMovie,
   getActors,
+  searchMoviesByName,
+  searchShows,
+  getTopMovies,
+  getTopShows,
 };
