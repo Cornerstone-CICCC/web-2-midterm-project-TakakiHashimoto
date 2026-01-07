@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getTopMovies } from "../../api";
 import { Link } from "react-router-dom";
 
-type Props = {};
+// type Props = {};
 
 function Top100Moives() {
   const { data } = useQuery({
@@ -21,16 +21,16 @@ function Top100Moives() {
           {new Date().getFullYear()}-{new Date().getMonth() + 1}-{" "}
           {new Date().getDate()}
         </p>
-        <div className="grid grid-cols-5 gap-4 py-8">
+        <div className="flex flex-nowrap overflow-x-auto gap-4 md:grid md:grid-cols-5 md:overflow-hidden md:gap-4 py-8 w-full">
           {data?.slice(0, 10).map((movie, index) => (
-            <div className="flex relative justify-center ml-10">
-              <span className="absolute -left-9 text-[140px] font-extrabold text-white/10 select-none">
+            <div className="flex relative justify-center shrink-0 ml-10 ">
+              <span className="absolute -left-14 md:-left-9 text-[140px] font-extrabold text-white/10 select-none">
                 {index + 1}
               </span>
               <Link to={`/movie/movie/${movie.id}`}>
                 <img
                   src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  className="relative z-10 w-35 rounded-xl shadow-2xl"
+                  className="relative z-10 w-[160px] aspect-[2/3] rounded-xl shadow-2xl"
                 />
               </Link>
             </div>
@@ -39,7 +39,9 @@ function Top100Moives() {
       </section>
       <section className="flex flex-col gap-3 text-center mt-10">
         <div>
-          <h1 className="text-7xl font-bold mb-5">Top 100</h1>
+          <h1 className="text-7xl font-bold mb-5">
+            Top <span className="text-red-600">100</span>
+          </h1>
         </div>
         {data?.map((movie, index) => {
           return (
@@ -51,14 +53,17 @@ function Top100Moives() {
                 />
 
                 <div className="flex flex-col gap-2 items-start">
-                  <p className="">#{index + 1}</p>
-                  <p>{movie.title}</p>
-                  <div className="flex gap-2">
-                    <p>{movie.release_date.split("-")[0]}</p>
+                  <div className="bg-yellow-300/50 w-[60px] text-black font-bold rounded-br-lg">
+                    <p className="">#{index + 1}</p>
+                  </div>
+                  <p className="font-bold">{movie.title}</p>
+                  <div className="flex gap-2 ">
+                    <p className="text-gray-400">
+                      {movie.release_date.split("-")[0]}
+                    </p>
+
                     <p>
-                      <p>
-                        ⭐ {movie.vote_average.toFixed(1)} ({movie.vote_count})
-                      </p>
+                      ⭐ {movie.vote_average.toFixed(1)} ({movie.vote_count})
                     </p>
                   </div>
                 </div>

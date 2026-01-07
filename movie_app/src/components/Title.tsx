@@ -6,7 +6,7 @@ type Props = {
 
 function Title({ category }: Props) {
   return (
-    <h1 className="font-extrabold text-4xl">{`${category} of the day`}</h1>
+    <h1 className="font-extrabold text-4xl underline decoration-red-500 underline-offset-10">{`${category} of the day`}</h1>
   );
 }
 

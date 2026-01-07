@@ -1,0 +1,146 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addRating, getWatched } from "../../api";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Rating } from "../components/Rating";
+
+type Movie = {
+  tmdb_id: number;
+  title: string;
+  poster: string;
+  watched: boolean;
+  favorite: boolean;
+  watchlist: boolean;
+  release_year: string | null;
+  movie_id: number;
+};
+
+function Watched() {
+  const { user } = useAuth();
+  const [showModal, setShowModal] = useState(false);
+  const [rating, setRate] = useState(0);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const queryClient = useQueryClient();
+
+  const rateMutateion = useMutation({
+    mutationFn: addRating,
+    onSuccess: () => {
+      setShowModal(false);
+      setSelectedMovie(null);
+      setRate(0);
+
+      queryClient.invalidateQueries({ queryKey: ["watched"] }); // backend database updated == cached data is old, refetch
+    },
+    onError: () => {
+      console.log("");
+    },
+  });
+
+  // movies.tmdb_id, movies.poster, movies.title, watchlists.watched, watchlists.favorite,watchlists.watchlist
+  const { data: watchedData } = useQuery<Movie[]>({
+    queryKey: ["watched", user?.id],
+    queryFn: getWatched,
+    enabled: !!user,
+  });
+
+  function openModal(movie: Movie) {
+    setSelectedMovie(movie);
+    setShowModal(true);
+    setRate(0);
+  }
+
+  function closeModal() {
+    setSelectedMovie(null);
+    setShowModal(false);
+  }
+  return (
+    <div
+      className="mt-17 bg-gradient-to-br 
+  from-[#0f0f12] 
+  via-[#14141a] 
+  to-[#09090b]
+  text-white"
+    >
+      {watchedData?.map((movie, index) => {
+        return (
+          <div className="flex gap-4 bg-black/20 ">
+            <Link to={`/movie/movie/${movie.tmdb_id}`}>
+              <img src={`${movie.poster}`} className="w-30 h-30 rounded-xl" />
+            </Link>
+
+            <div className="flex flex-col gap-2 items-start">
+              <div className="bg-yellow-300/50 w-[60px] text-black font-bold rounded-br-lg">
+                <p className="">{index + 1}</p>
+              </div>
+              <p className="font-bold">{movie.title}</p>
+              <div className="flex gap-2 ">
+                <p className="text-gray-400">
+                  {movie.release_year?.slice(0, 4) ?? "—"}
+                </p>
+
+                <button type="button" onClick={() => openModal(movie)}>
+                  Rate
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {showModal && selectedMovie && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center">
+          <div className="bg-zinc-900 rounded-xl w-[420px] p-6 relative">
+            {/* Close */}
+            <button
+              onClick={closeModal}
+              className="absolute top-3 right-3 text-white text-xl"
+            >
+              ✕
+            </button>
+
+            {/* Rating number */}
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-2xl font-bold">
+                {rating || "—"}
+              </div>
+            </div>
+
+            <p className="text-center text-sm text-yellow-400 mb-1">
+              RATE THIS
+            </p>
+
+            <h2 className="text-center text-lg font-bold mb-4">
+              {selectedMovie.title}
+            </h2>
+
+            {/* Stars */}
+            <div className="flex justify-center mb-6">
+              <Rating rating={rating} onChange={setRate} />
+            </div>
+
+            {/* Actions */}
+            <button
+              className="w-full bg-yellow-400 text-black font-bold py-2 rounded-full mb-3"
+              onClick={() =>
+                rateMutateion.mutate({
+                  movieId: selectedMovie.movie_id,
+                  rating: rating,
+                })
+              }
+            >
+              Rate
+            </button>
+
+            <label className="flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" />
+              Remove from Watchlist
+            </label>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export { Watched };

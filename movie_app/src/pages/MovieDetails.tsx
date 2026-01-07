@@ -1,11 +1,34 @@
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
-import { getActors, searchMovie, searchShows } from "../../api";
+// Here I want to do: display movie / tvShow details.
+// If a user clicks button => backend handles authentication and if logged-in add database
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  getActors,
+  searchMovie,
+  searchShows,
+  addWatchlist,
+  addFav,
+  addWatched,
+} from "../../api";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { getUserMovieData } from "../../api";
+// import { motion, AnimatePresence } from "framer-motion";
+
+type Movie = {
+  id: number;
+  tmdb_id: number;
+  watched: boolean;
+  favorite: boolean;
+  watchlist: boolean;
+};
 
 function MovieDetails() {
   const { id, category } = useParams();
   const movieId = Number(id);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
     queryKey: ["searchMovie", movieId],
@@ -18,6 +41,80 @@ function MovieDetails() {
     },
   });
 
+  console.log("params:", { id, category });
+
+  // movies.tmdb_id, watchlists.watched, watchlists.favorite,watchlists.watchlist
+  const { data: userMovie } = useQuery({
+    queryKey: ["userMovie", movieId, user?.id],
+    queryFn: async () => {
+      const movie = await getUserMovieData();
+      const matchingMovie = movie.find(
+        (movie: Movie) => movie.tmdb_id === data.id
+      );
+      return matchingMovie;
+    },
+    enabled: !!user && !!data,
+  });
+
+  const isInWatchlist = userMovie?.watchlist === true; // if watchlist is true, it is true else. stores "false"
+  const favorited = userMovie?.favorite === true; // if favorited, stores true, else false
+  const isInWatched = userMovie?.watched === true; // if watched, stores true, else false
+  console.log("userMovie:", userMovie);
+  console.log("favorited:", favorited);
+
+  const queryClient = useQueryClient();
+
+  const watchlistMutation = useMutation({
+    mutationFn: addWatchlist, // try adding watchlist=true to database
+    onSuccess: () => {
+      // if seccuess, do what?
+      console.log("Added to watchlist");
+      queryClient.invalidateQueries({
+        queryKey: ["userMovie", movieId, user?.id],
+      });
+    },
+    onError: (error) => {
+      // if backend returns error, get them back to login page or redirect back to homepage
+      if (error.message.includes("401")) {
+        navigate("/login");
+      }
+      console.log(error);
+    },
+  });
+
+  const favMutation = useMutation({
+    mutationFn: addFav, // try adding favorite=true to database
+    onSuccess: () => {
+      // if seccuess, do what?
+      console.log("Added to favoritelist");
+      queryClient.invalidateQueries({
+        queryKey: ["userMovie", movieId, user?.id],
+      });
+    },
+    onError: (error) => {
+      // if backend returns error, get them back to login page or redirect back to homepage
+      if (error.message.includes("401")) {
+        navigate("/login");
+      }
+      console.log(error);
+    },
+  });
+
+  const watchedMutation = useMutation({
+    mutationFn: addWatched,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["userMovie", movieId, user?.id],
+      });
+    },
+    onError: (error) => {
+      if (error.message.includes("401")) {
+        navigate("/login");
+      }
+      console.log(error);
+    },
+  });
+
   const { data: actors } = useQuery({
     queryKey: ["actors", movieId],
     queryFn: () => getActors(movieId, category!),
@@ -26,21 +123,56 @@ function MovieDetails() {
   const [showAll, setShowAll] = useState(false);
   const visibleActors = showAll ? actors?.cast : actors?.cast.slice(0, 4);
 
+  function handleWatchlist() {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    watchlistMutation.mutate({
+      movieId: data.id,
+      title: category === "movie" ? data.title : data.name,
+      release_year:
+        category === "movie" ? data.release_date : data.first_air_date,
+      poster: `https://image.tmdb.org/t/p/original${data.poster_path}`,
+    });
+  }
+
+  function handleWatched() {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    watchedMutation.mutate({
+      movieId: data.id,
+      title: category === "movie" ? data.title : data.name,
+      release_year:
+        category === "movie" ? data.release_date : data.first_air_date,
+      poster: `https://image.tmdb.org/t/p/original${data.poster_path}`,
+    });
+  }
+
+  function handleFav() {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    favMutation.mutate({
+      movieId: data.id,
+      title: category === "movie" ? data.title : data.name,
+      release_year:
+        category === "movie" ? data.release_date : data.first_air_date,
+      poster: `https://image.tmdb.org/t/p/original${data.poster_path}`,
+    });
+  }
+
   if (isLoading) return <p></p>;
 
   const bgUrl = `https://image.tmdb.org/t/p/original${data.backdrop_path}`;
   return (
     <div className=" flex justify-center">
       <div
-        className={`relative
-    flex flex-col md:flex-row
-    gap-8
-    w-full
-    min-h-[70vh] md:h-screen
-    bg-cover bg-center
-    px-5 md:px-8 pb-12
-    items-start md:items-end
-    mt-16 md:mt-0`}
+        className={`relative flex flex-col md:flex-row gap-8 w-full min-h-[70vh] md:h-screen bg-cover bg-center
+                    px-5 md:px-8 pb-12 items-start md:items-end mt-16 md:mt-0`}
         style={{ backgroundImage: `url(${bgUrl})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/90"></div>
@@ -77,18 +209,66 @@ function MovieDetails() {
           </div>
           <p>{data.overview}</p>
 
-          <button
-            className="flex items-center justify-center gap-2
-                       px-8 py-3
-                       rounded-xl
-                       bg-blue-900 hover:bg-blue-700
-                       text-white text-sm font-semibold
-                       shadow-lg shadow-blue-600/30
-                       transition-all duration-200
-                       active:scale-95 w-full sm:w-[30%]"
-          >
-            Watch List +
-          </button>
+          <div className="flex gap-3">
+            <button
+              className={`relative flex items-center justify-center gap-2
+    px-7 py-3 rounded-2xl
+    text-sm font-semibold
+    transition-all duration-200
+    active:scale-95
+    disabled:opacity-60 disabled:cursor-not-allowed
+
+    ${
+      isInWatchlist
+        ? "bg-emerald-600 shadow-[0_0_25px_rgba(16,185,129,0.35)]"
+        : "bg-blue-600 hover:bg-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.35)]"
+    }`}
+              onClick={handleWatchlist}
+            >
+              Watch List
+              {isInWatchlist ? <span>✓</span> : <span> + </span>}
+            </button>
+            <button
+              className={` relative flex items-center justify-center gap-2 px-7 py-3 rounded-2xl text-sm font-semibold transition-all duration-200 active:scale-95 disabled:opacity-60
+
+    ${
+      isInWatched
+        ? "bg-emerald-600 shadow-[0_0_25px_rgba(16,185,129,0.35)]"
+        : "bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_25px_rgba(99,102,241,0.35)]"
+    }`}
+              onClick={handleWatched}
+            >
+              Mark as Watched {isInWatched ? <span>✓</span> : <span> + </span>}
+            </button>
+
+            <Link
+              to={`/review/${data.id}`}
+              state={{
+                poster: `https://image.tmdb.org/t/p/original${data.backdrop_path}`,
+                title: category === "movie" ? data.title : data.name,
+                release_year:
+                  category === "movie"
+                    ? data.release_date
+                    : data.first_air_date,
+              }}
+            >
+              <button className=" px-7 py-3 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm shadow-[0_0_30px_rgba(250,204,21,0.45)] transition-all duration-200 active:scale-95">
+                Add review +
+              </button>
+            </Link>
+            <button
+              onClick={handleFav}
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all duration-200 active:scale-90"
+            >
+              <span
+                className={`text-2xl transition-transform ${
+                  favorited ? "scale-110 text-pink-500" : "text-white"
+                }`}
+              >
+                {favorited ? "♥" : "♡"}
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="relative z-10 mt-10 w-full md:w-[50%]">

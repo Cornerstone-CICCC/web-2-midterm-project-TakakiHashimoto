@@ -9,6 +9,7 @@ import {
   getTvGenre,
 } from "../../api";
 import Select from "./Select";
+import { useTheme } from "../context/ThemContext";
 // import type { Movie, TrendingMoviesResponse } from "../schemas/trendingMovie";
 
 type Props = {
@@ -22,6 +23,7 @@ type sectionProps = {
 };
 
 function Section({ category, setCategory }: sectionProps) {
+  const { isDark } = useTheme();
   function updateCategory(value: string) {
     setCategory(value);
   }
@@ -58,27 +60,35 @@ function Section({ category, setCategory }: sectionProps) {
     ...passedData,
     results:
       sort === "genre"
-        ? passedData.results
+        ? passedData?.results
         : sort === "Ratings"
         ? sortedByRating
-        : passedData.results,
+        : passedData?.results,
   };
 
   if (isLoading) return <p>Loading</p>;
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 z-3">
       <div className="flex gap-5">
         <Select
           change={updateCategory}
           value={category}
           options={["movie", "TV Shows"]}
-          childrenClassName="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none"
+          childrenClassName={
+            isDark
+              ? "px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none"
+              : "px-4 py-2 rounded-xl bg-blue-900/20 border border-black/10 text-black focus:outline-none focus:ring-2 focus:ring-black/20 appearance-none"
+          }
         />
         <Select
           change={(value: string) => setSort(value)}
           value={sort}
           options={["Ratings", "genre"]}
-          childrenClassName="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none"
+          childrenClassName={
+            isDark
+              ? "px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none"
+              : "px-4 py-2 rounded-xl bg-blue-900/20 border border-black/10 text-black focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none"
+          }
         />
       </div>
       <Title category={category}></Title>

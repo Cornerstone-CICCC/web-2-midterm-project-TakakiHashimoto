@@ -1,6 +1,10 @@
 // import React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemContext";
+import { useMutation } from "@tanstack/react-query";
+import { logout } from "../../api";
+import { useAuth } from "../context/AuthContext";
 
 type Props = {
   className?: string;
@@ -8,6 +12,22 @@ type Props = {
 
 function Navbar({ className }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
+  const { user, setUser } = useAuth();
+  const navigation = useNavigate();
+
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      navigation("/");
+    },
+  });
+
+  function handleLogout() {
+    logoutMutation.mutate();
+    setUser(null);
+  }
+
   return (
     <>
       <div
@@ -15,11 +35,30 @@ function Navbar({ className }: Props) {
                   bg-black/30 backdrop-blur-md
                   border-b border-white/10`}
       >
-        <Link to="/" className="text-white font-bold text-xl tracking-wide">
-          MovieTrack
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/" className="text-white font-bold text-xl tracking-wide">
+            MovieTrack
+          </Link>
+          <p>{user?.email}</p>
+        </div>
 
         <div className="hidden md:flex gap-8 text-white/80">
+          {!user && (
+            <a href="/login" className="hover:text-white transition">
+              log in
+            </a>
+          )}
+          {!user && (
+            <a href="/signin" className="hover:text-white transition">
+              Sign Up
+            </a>
+          )}
+
+          {user && (
+            <a href="/dashboard" className="hover:text-white transition">
+              Dash Board
+            </a>
+          )}
           <a href="/" className="hover:text-white transition">
             Home
           </a>
@@ -34,6 +73,15 @@ function Navbar({ className }: Props) {
           <a href="/top100movies" className="hover:text-white transition">
             Top 100 Movies
           </a>
+
+          {user && <button onClick={handleLogout}>Log Out</button>}
+
+          <button
+            onClick={() => toggleTheme()}
+            className="hover:text-white transition"
+          >
+            {isDark ? <p>🔆</p> : <p>🌙</p>}
+          </button>
         </div>
 
         <button

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function About() {
   return (
     <div className="bg-gradient-to-br from from-cyan-900/50 via-black h-screen">
@@ -22,12 +24,16 @@ function About() {
           </p>
 
           <div className="flex gap-4 justify-start mt-5">
-            <button className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none hover:bg-white/50">
-              Login In
-            </button>
-            <button className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none hover:bg-white/50">
-              Create Account
-            </button>
+            <Link to="/login">
+              <button className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none hover:bg-white/50">
+                Login In
+              </button>
+            </Link>
+            <Link to="/signin">
+              <button className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none hover:bg-white/50">
+                Create Account
+              </button>
+            </Link>
           </div>
         </div>
       </section>
